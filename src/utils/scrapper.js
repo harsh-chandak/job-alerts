@@ -1,0 +1,70 @@
+import puppeteer from 'puppeteer';
+import clientPromise from '@/utils/db';
+import { notifyDiscord } from './discordhelper';
+import { scrapeGenericApiCompany } from './dynamicApiScraper';
+
+const constraints = {
+  include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],
+  location: ['remote', 'united states', 'usa'],
+  exclude: ['senior', 'director', 'citizen', 'sr'],
+};
+
+function matchesConstraints(title = '', location = '') {
+  const text = `${title} ${location}`.toLowerCase();
+  const hasInclude = constraints.include.some(word => text.includes(word));
+  const hasLocation = constraints.location.some(word => text.includes(word));
+  const hasExclude = constraints.exclude.some(word => text.includes(word));
+  return hasInclude && hasLocation && !hasExclude;
+}
+
+export async function scrapeAndNotify() {
+  const db = (await clientPromise).db("job-alerts");
+  const companies = await db.collection("companies").find().toArray();
+
+  const browser = await puppeteer.launch({ headless: 'new' });
+  const page = await browser.newPage();
+  const allNewJobs = [];
+
+  for (const company of companies) {
+    try {
+      if (company.customApi) {
+        const apiJobs = await scrapeGenericApiCompany(company, db, constraints);
+        for (const job of apiJobs) {
+          allNewJobs.push(job);
+          await db.collection("sentJobs").insertOne({ id: job.id, ts: new Date(), company: job.company });
+        }
+        continue;
+      }
+
+      await page.goto(company.careersUrl, { waitUntil: 'networkidle2' });
+      const jobs = await page.evaluate(() => {
+        const anchors = Array.from(document.querySelectorAll('article.markdown-body a[href^="http"]'));
+        return anchors
+          .filter(a => a.href && a.innerText.trim())
+          .map(a => {
+            const url = a.href;
+            return {
+              title: a.innerText.trim(),
+              url,
+              id: url.split('/').slice(-1)[0] || url,  // fallback to full url
+            };
+          })
+      });
+      for (const job of jobs) {
+        if (!await db.collection("sentJobs").findOne({ id: job.id, company: company.name })) {
+          allNewJobs.push({ ...job, company: company.name, career_page: company.careersUrl });
+          await db.collection("sentJobs").insertOne({ id: job.id, ts: new Date(), company: company.name });
+        }
+      }
+    } catch (err) {
+      console.error(err)
+      console.error(`Failed to scrape ${company.name}:`, err.message);
+    }
+  }
+
+  await browser.close();
+
+  if (allNewJobs.length) {
+    await notifyDiscord(allNewJobs);
+  }
+}
