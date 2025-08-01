@@ -31,7 +31,7 @@ export async function scrapeAndNotify() {
         const apiJobs = await scrapeGenericApiCompany(company, db, constraints);
         for (const job of apiJobs) {
           allNewJobs.push(job);
-          await db.collection("sentJobs").insertOne({ id: job.id, ts: new Date(), company: job.company });
+          await db.collection("sentJobs").insertOne({ id: job.id, ts: new Date(), company: job.company, title: job.title });
         }
         continue;
       }
@@ -51,9 +51,9 @@ export async function scrapeAndNotify() {
           })
       });
       for (const job of jobs) {
-        if (!await db.collection("sentJobs").findOne({ id: job.id, company: company.name })) {
+        if (!await db.collection("sentJobs").findOne({ id: job.id, company: company.name, title: job.title })) {
           allNewJobs.push({ ...job, company: company.name, career_page: company.careersUrl });
-          await db.collection("sentJobs").insertOne({ id: job.id, ts: new Date(), company: company.name });
+          await db.collection("sentJobs").insertOne({ id: job.id, ts: new Date(), company: company.name, title: job.title });
         }
       }
     } catch (err) {
