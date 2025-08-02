@@ -1,10 +1,7 @@
-// import puppeteer from 'puppeteer';
+import puppeteer, { executablePath } from 'puppeteer';
 import { notifyDiscord } from './discordhelper';
 import { scrapeGenericApiCompany } from './dynamicApiScraper';
 import { sendFailureDiscordNotification } from './failure-notify';
-import chromium from 'chrome-aws-lambda';
-import puppeteer from 'puppeteer-core';
-import { executablePath } from 'puppeteer';
 
 const constraints = {
   include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],
@@ -19,20 +16,16 @@ function matchesConstraints(title = '', location = '') {
   const hasExclude = constraints.exclude.some(word => text.includes(word));
   return hasInclude && hasLocation && !hasExclude;
 }
-export async function launchBrowser() {
-  let executablePath = puppeteer.executablePath();
 
-  return puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath,
-    headless: chromium.headless,
-  });
-}
 export async function scrapeAndNotify(req, db, user) {
   const companies = await db.collection("companies").find().toArray();
-
-  const browser = await launchBrowser();
+  await puppeteer.use(hidden())
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox',],
+    headless: false,
+    ignoreHTTPSErrors: true,
+    executablePath: executablePath(),
+  });
   const page = await browser.newPage();
   const allNewJobs = [];
 
