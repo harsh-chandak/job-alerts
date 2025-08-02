@@ -1,7 +1,9 @@
-import puppeteer, { executablePath } from 'puppeteer';
+import { executablePath } from 'puppeteer';
 import { notifyDiscord } from './discordhelper';
 import { scrapeGenericApiCompany } from './dynamicApiScraper';
 import { sendFailureDiscordNotification } from './failure-notify';
+import puppeteer from "puppeteer-extra"
+import hidden from "puppeteer-extra-plugin-stealth"
 
 const constraints = {
   include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],
