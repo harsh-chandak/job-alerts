@@ -14,7 +14,11 @@ export default function DeleteCompany() {
 
     const deleteCompany = async () => {
       try {
-        const res = await axios.delete(`/api/companies/delete?id=${id}`);
+        const res = await axios.delete(`/api/companies/delete?id=${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          }
+        });
         if (res.status === 200) {
           setStatus('✅ Company deleted successfully.');
           setTimeout(() => router.push('/companies'), 2000);
@@ -23,7 +27,13 @@ export default function DeleteCompany() {
         }
       } catch (err) {
         console.error(err);
-        setError('❌ Failed to delete company.');
+        if (err.response?.status === 403 || err.response?.status === 401) {
+          // ✅ Redirect to login if auth failed
+          localStorage.clear()
+          router.push('/');
+        } else {
+          setError('❌ Failed to delete company.');
+        }
       }
     };
 

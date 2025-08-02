@@ -15,10 +15,20 @@ export default function ViewCompany() {
 
         const fetchCompany = async () => {
             try {
-                const res = await axios.get(`/api/companies/get-one?id=${id}`);
+                const res = await axios.get(`/api/companies/get-one?id=${id}`, {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    }
+                });
                 setCompany(res.data.data);
             } catch (err) {
-                setError('Failed to load company');
+                if (err.response?.status === 403 || err.response?.status === 401) {
+                    // ✅ Redirect to login if auth failed
+                    localStorage.clear()
+                    router.push('/');
+                } else {
+                    setError('Failed to load company');
+                }
             } finally {
                 setLoading(false);
             }

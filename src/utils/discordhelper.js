@@ -1,9 +1,10 @@
 import axios from "axios";
 import chunk from "lodash.chunk";
+import { sendFailureDiscordNotification } from "./failure-notify";
 
 const MAX_EMBEDS = 10;
-const DISCORD_WEBHOOK_URL = String(process.env.discord_uri)
-export async function notifyDiscord(jobs = []) {
+export async function notifyDiscord(jobs = [], config) {
+  const DISCORD_WEBHOOK_URL = String(config.discord_uri)
   if (!DISCORD_WEBHOOK_URL) throw new Error("Missing DISCORD_WEBHOOK_URL in .env");
   if (!jobs.length) return;
 
@@ -41,8 +42,7 @@ export async function notifyDiscord(jobs = []) {
     try {
       await axios.post(DISCORD_WEBHOOK_URL, { embeds });
     } catch (err) {
-      console.error(`❌ Failed to send Discord webhook:`, err.message);
-      console.error(err?.response?.data);
+      await sendFailureDiscordNotification(err, `Error in sending discord notification for ${config.name} user.`);
     }
 
     // Delay between batches to avoid rate limit (tweak as needed)

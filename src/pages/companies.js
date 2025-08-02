@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 export default function Companies() {
     const [companies, setCompanies] = useState([]);
@@ -8,14 +9,25 @@ export default function Companies() {
     const [error, setError] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;  // You can change this
+    const router = useRouter()
     const fetchCompanies = async () => {
         try {
-            const res = await axios.get('/api/companies/get-all');
+            const res = await axios.get('/api/companies/get-all', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                }
+            });
             setCompanies(res.data.data);
             setLoading(false);
         } catch (err) {
-            setError('Failed to fetch companies');
             setLoading(false);
+            if (err.response?.status === 403 || err.response?.status === 401) {
+                // ✅ Redirect to login if auth failed
+                localStorage.clear()
+                router.push('/');
+            } else {
+                setError('Failed to fetch Companies');
+            }
         }
     };
 

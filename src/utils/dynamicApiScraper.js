@@ -1,5 +1,6 @@
 // utils/dynamicApiScraper.js
 import axios from 'axios';
+import { sendFailureDiscordNotification } from './failure-notify';
 
 function deepGet(obj, path) {
     if (!path) return undefined;
@@ -20,7 +21,7 @@ function slugify(text = "") {
     return text.toLowerCase().replace(/\s+/g, "-").replace(/[^\w-]/g, "");
 }
 
-export async function scrapeGenericApiCompany(companyConfig, db, constraints) {
+export async function scrapeGenericApiCompany(companyConfig, db, constraints, user) {
     const { name, careersApi, params, responseMapping, method = "GET" , careersUrl} = companyConfig;
     const { jobsPath, fields } = responseMapping;
     const newJobs = [];
@@ -47,6 +48,7 @@ export async function scrapeGenericApiCompany(companyConfig, db, constraints) {
     } catch (err) {
         console.error(err)
         console.error(`❌ Failed to scrape ${name}:`, err.message);
+        await sendFailureDiscordNotification(err, `Error in sending jobs for ${name} with custom API for ${user.name} user.`)
     }
     return newJobs;
 }

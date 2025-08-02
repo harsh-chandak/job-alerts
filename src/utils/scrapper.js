@@ -1,7 +1,7 @@
 import puppeteer from 'puppeteer';
-import clientPromise from '@/utils/db';
 import { notifyDiscord } from './discordhelper';
 import { scrapeGenericApiCompany } from './dynamicApiScraper';
+import { sendFailureDiscordNotification } from './failure-notify';
 
 const constraints = {
   include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],
@@ -17,8 +17,7 @@ function matchesConstraints(title = '', location = '') {
   return hasInclude && hasLocation && !hasExclude;
 }
 
-export async function scrapeAndNotify() {
-  const db = (await clientPromise).db("job-alerts");
+export async function scrapeAndNotify(req, db, user) {
   const companies = await db.collection("companies").find().toArray();
 
   const browser = await puppeteer.launch({ headless: 'new' });
@@ -28,7 +27,7 @@ export async function scrapeAndNotify() {
   for (const company of companies) {
     try {
       if (company.customApi) {
-        const apiJobs = await scrapeGenericApiCompany(company, db, constraints);
+        const apiJobs = await scrapeGenericApiCompany(company, db, constraints, user);
         for (const job of apiJobs) {
           allNewJobs.push(job);
           await db.collection("sentJobs").insertOne({ id: job.id, ts: new Date(), company: job.company, title: job.title });
@@ -59,12 +58,13 @@ export async function scrapeAndNotify() {
     } catch (err) {
       console.error(err)
       console.error(`Failed to scrape ${company.name}:`, err.message);
+      await sendFailureDiscordNotification(err, `Error in scrapping ${company.name} job data for ${user.name} user.`)
     }
   }
 
   await browser.close();
 
   if (allNewJobs.length) {
-    await notifyDiscord(allNewJobs);
+    await notifyDiscord(allNewJobs.reverse(), user);
   }
 }

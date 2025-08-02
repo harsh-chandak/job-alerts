@@ -1,23 +1,35 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useRouter } from 'next/router';
 
 export default function Jobs() {
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
+    const router = useRouter();
     // Pagination state
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;  // You can change this
-
     const fetchJobs = async () => {
         try {
-            const res = await axios.get('/api/jobs/get-all');
+            const res = await axios.get('/api/jobs/get-all', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
             setJobs(res.data.data);
             setLoading(false);
         } catch (err) {
-            setError('Failed to fetch Jobs');
             setLoading(false);
+
+            if (err.response?.status === 403 || err.response?.status === 401) {
+                // ✅ Redirect to login if auth failed
+                localStorage.clear()
+                router.push('/');
+            } else {
+                setError('Failed to fetch Jobs');
+            }
         }
     };
 
@@ -86,9 +98,8 @@ export default function Jobs() {
                                 <button
                                     key={page}
                                     onClick={() => goToPage(page)}
-                                    className={`px-3 py-1 rounded border ${
-                                        page === currentPage ? 'bg-blue-500 text-white' : ''
-                                    }`}
+                                    className={`px-3 py-1 rounded border ${page === currentPage ? 'bg-blue-500 text-white' : ''
+                                        }`}
                                 >
                                     {page}
                                 </button>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import dynamic from 'next/dynamic';
 import { Plus, X } from 'lucide-react';
@@ -8,12 +8,15 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import Layout from '@/components/layout';
 import { Label } from '@/components/ui/label';
+import { useRouter } from 'next/router';
 
 const ReactJson = dynamic(() => import('react-json-view'), {
     ssr: false,
 });
 
 export default function Home() {
+
+    const router = useRouter()
     const [jsonFile, setJsonFile] = useState(null);
     const [company, setCompany] = useState({
         name: '',
@@ -32,6 +35,18 @@ export default function Home() {
         descriptionPath: '',
     });
     const [status, setStatus] = useState('');
+    const fetchProfile = async () => {
+        try {
+            const res = await axios.get('/api/auth/profile', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+        } catch {
+            localStorage.clear()
+            router.push('/');
+        }
+    };
 
     const handleJsonUpload = async () => {
         if (!jsonFile) return;
@@ -39,10 +54,20 @@ export default function Home() {
         formData.append('file', jsonFile);
         setStatus('Uploading JSON...');
         try {
-            const res = await axios.post('/api/upload', formData);
+            const res = await axios.post('/api/upload', formData, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                }
+            });
             setStatus(res.data.message);
         } catch {
-            setStatus('❌ Upload failed');
+            if (err.response?.status === 403 || err.response?.status === 401) {
+                // ✅ Redirect to login if auth failed
+                localStorage.clear()
+                router.push('/');
+            } else {
+                setStatus('❌ Upload failed');
+            }
         }
     };
 
@@ -76,7 +101,6 @@ export default function Home() {
             careersUrl: company.careersUrl,
             customApi: company.customApi,
         };
-
         if (company.customApi) {
             payload.careersApi = company.careersApi;
             try {
@@ -99,10 +123,20 @@ export default function Home() {
 
         setStatus('Uploading company...');
         try {
-            const res = await axios.post('/api/upload', { company: payload });
+            const res = await axios.post('/api/upload', { company: payload }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                }
+            });
             setStatus(res.data.message);
-        } catch {
-            setStatus('❌ Upload failed');
+        } catch (err) {
+            if (err.response?.status === 403 || err.response?.status === 401) {
+                // ✅ Redirect to login if auth failed
+                localStorage.clear()
+                router.push('/');
+            } else {
+                setStatus('❌ Upload failed');
+            }
         }
     };
 
@@ -113,7 +147,9 @@ export default function Home() {
             params: [...company.params, { key: '', value: '', enabled: true }]
         });
     };
-
+    useEffect(() => {
+        fetchProfile(); // runs once on mount before rendering
+    }, []);
     const removeParam = (index) => {
         const newParams = company.params.filter((_, i) => i !== index);
         setCompany({ ...company, params: newParams });

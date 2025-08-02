@@ -1,7 +1,8 @@
 // pages/api/upload.js
 import formidable from "formidable";
 import fs from "fs";
-import clientPromise from "@/utils/db";
+import {clientPromise} from "@/utils/db";
+import { withAuth } from "../middleware/withAuth";
 
 export const config = {
   api: {
@@ -21,8 +22,8 @@ function validateCompany(company) {
   return true;
 }
 
-export default async function handler(req, res) {
-  const db = (await clientPromise).db("job-alerts");
+async function handler(req, res) {
+  const db = (await clientPromise(req)).db("job-alerts");
   const collection = db.collection("companies");
 
   if (req.method === "POST") {
@@ -74,3 +75,5 @@ export default async function handler(req, res) {
     return res.status(405).json({ message: "Method not allowed" });
   }
 }
+
+export default withAuth(handler)

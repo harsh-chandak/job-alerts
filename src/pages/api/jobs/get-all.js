@@ -1,8 +1,9 @@
-import clientPromise from "@/utils/db";
+import { withAuth } from "@/pages/middleware/withAuth";
+import {clientPromise} from "@/utils/db";
 
-export default async function handler(req, res) {
+async function handler(req, res) {
     try {
-        const db = (await clientPromise).db("job-alerts");
+        const db = (await clientPromise(req)).db("job-alerts");
         const collection = db.collection("sentJobs");
 
         
@@ -43,3 +44,4 @@ export default async function handler(req, res) {
         });
     }
 }
+export default withAuth(handler)

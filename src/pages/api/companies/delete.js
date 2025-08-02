@@ -1,8 +1,9 @@
 import { ObjectId } from 'mongodb';
-import clientPromise from "@/utils/db";
+import {clientPromise} from "@/utils/db";
+import { withAuth } from '@/pages/middleware/withAuth';
 
-export default async function handler(req, res) {
-    const db = (await clientPromise).db("job-alerts");
+async function handler(req, res) {
+    const db = (await clientPromise(req)).db("job-alerts");
 
     if (req.method !== 'DELETE') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -21,7 +22,7 @@ export default async function handler(req, res) {
         const company = await db.collection('companies').findOne({ _id: objectId });
 
         if (!company) {
-            return res.status(404).json({ error: 'Company not found' });
+            return res.status(200).json({ error: 'Company not found' });
         }
 
         await db.collection('companies').deleteOne({ _id: objectId });
@@ -32,3 +33,5 @@ export default async function handler(req, res) {
         res.status(500).json({ error: 'Internal server error' });
     }
 }
+
+export default withAuth(handler)
