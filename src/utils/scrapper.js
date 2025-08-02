@@ -2,8 +2,9 @@
 import { notifyDiscord } from './discordhelper';
 import { scrapeGenericApiCompany } from './dynamicApiScraper';
 import { sendFailureDiscordNotification } from './failure-notify';
-import chromium from 'chrome-aws-lambda';
+import chromium, { executablePath } from 'chrome-aws-lambda';
 import puppeteer from 'puppeteer-core';
+import { executablePath } from 'puppeteer';
 
 const constraints = {
   include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],
@@ -19,15 +20,14 @@ function matchesConstraints(title = '', location = '') {
   return hasInclude && hasLocation && !hasExclude;
 }
 export async function launchBrowser() {
-  const executablePath = await chromium.executablePath;
+  let executablePath = puppeteer.executablePath();
 
   if (!executablePath) {
-    // Running locally? Use default puppeteer executable.
-    return await puppeteer.launch({ headless: true });
+    // Local development fallback (make sure you have 'puppeteer' installed locally)
+    executablePath = executablePath()
   }
 
-  // On serverless (e.g. Vercel), launch with chrome-aws-lambda's executable and args
-  return await puppeteer.launch({
+  return puppeteer.launch({
     args: chromium.args,
     defaultViewport: chromium.defaultViewport,
     executablePath,
