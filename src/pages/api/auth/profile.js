@@ -34,7 +34,7 @@ export default async function handler(req, res) {
             );
 
             if (!user) return res.status(200).json({ error: "User not found" });
-            if (!user.is_approved) return res.status(403).json({ error: 'User not approved yet' });
+            if (!user.is_approved) return res.status(401).json({ error: 'User not approved yet' });
 
             res.status(200).json({ success: true, data: user });
         } catch (err) {
