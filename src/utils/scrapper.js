@@ -1,9 +1,9 @@
-import { executablePath } from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 import { notifyDiscord } from './discordhelper';
 import { scrapeGenericApiCompany } from './dynamicApiScraper';
 import { sendFailureDiscordNotification } from './failure-notify';
-import puppeteer from "puppeteer-extra"
-import hidden from "puppeteer-extra-plugin-stealth"
+
 
 const constraints = {
   include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],
@@ -21,12 +21,12 @@ function matchesConstraints(title = '', location = '') {
 
 export async function scrapeAndNotify(req, db, user) {
   const companies = await db.collection("companies").find().toArray();
-  await puppeteer.use(hidden())
   const browser = await puppeteer.launch({
-    args: ['--no-sandbox',],
-    headless: false,
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
     ignoreHTTPSErrors: true,
-    executablePath: executablePath(),
   });
   const page = await browser.newPage();
   const allNewJobs = [];
