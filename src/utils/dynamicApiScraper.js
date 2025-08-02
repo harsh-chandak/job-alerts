@@ -32,14 +32,14 @@ export async function scrapeGenericApiCompany(companyConfig, db, constraints, us
         for (const job of jobs) {
             const title = deepGet(job, fields.title);
             
-            const id = deepGet(job, fields.id);
+            const id = String(deepGet(job, fields.id));
             const location = deepGet(job, fields.location) || "";
             const description = deepGet(job, fields.description) || "";
 
             if (!title || !id) continue;
             const fullText = `${title} ${location} ${description}`.toLowerCase();
             
-            if (!await db.collection("sentJobs").findOne({id: job.id, company: name })) {
+            if (!await db.collection("sentJobs").findOne({id: id, company: name })) {
                 if  (matchesConstraints(fullText, constraints)){
                     newJobs.push({ title, id, location, company: name , career_page: careersUrl});
                 }
