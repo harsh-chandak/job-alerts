@@ -1,5 +1,6 @@
 // /pages/api/try-puppeteer.js
-import puppeteer from 'puppeteer';
+import puppeteer from 'puppeteer-core';
+import chromium from '@sparticuz/chromium';
 
 export default async function handler(req, res) {
   const { url } = req.body;
@@ -9,7 +10,13 @@ export default async function handler(req, res) {
   }
 
   try {
-    const browser = await puppeteer.launch({ headless: 'new' });
+    const browser = await puppeteer.launch({
+      args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
+      executablePath: await chromium.executablePath(),
+      headless: chromium.headless,
+      ignoreHTTPSErrors: true,
+    });
     const page = await browser.newPage();
 
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
