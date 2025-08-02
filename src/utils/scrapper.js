@@ -18,15 +18,26 @@ function matchesConstraints(title = '', location = '') {
   const hasExclude = constraints.exclude.some(word => text.includes(word));
   return hasInclude && hasLocation && !hasExclude;
 }
+export async function launchBrowser() {
+  const executablePath = await chromium.executablePath;
 
+  if (!executablePath) {
+    // Running locally? Use default puppeteer executable.
+    return await puppeteer.launch({ headless: true });
+  }
+
+  // On serverless (e.g. Vercel), launch with chrome-aws-lambda's executable and args
+  return await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath,
+    headless: chromium.headless,
+  });
+}
 export async function scrapeAndNotify(req, db, user) {
   const companies = await db.collection("companies").find().toArray();
 
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    executablePath: await chromium.executablePath,
-    headless: chromium.headless,
-  });
+  const browser = await launchBrowser();
   const page = await browser.newPage();
   const allNewJobs = [];
 
