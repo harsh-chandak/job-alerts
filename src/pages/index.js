@@ -21,6 +21,7 @@ export default function Login() {
       console.log('Token saved:', localStorage.getItem('token'));
       router.push('/home');
     } catch (err) {
+      console.error(err)
       setError(err?.response?.data?.error || 'Login failed');
     }
     setLoading(false);
