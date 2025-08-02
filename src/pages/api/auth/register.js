@@ -83,14 +83,36 @@ async function sendPendingApprovalEmail(toEmail, userName) {
     });
 
     const html = `
-  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <h2 style="color: #0070f3;">Hello ${userName},</h2>
-    <p>Thank you for registering on our platform. Your account is currently <strong>pending approval</strong>.</p>
-    <p>Our team will review your registration shortly. You will receive another email once your account has been approved and activated.</p>
-    <p>We appreciate your patience!</p>
-    <br />
-    <p style="font-size: 0.9em; color: #555;">Best regards,<br/>The Job Alerts Team</p>
-  </div>
+    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #222; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #eaeaea; border-radius: 8px; background: #fafafa;">
+        <h2 style="color: #0070f3; margin-bottom: 16px;">Hello ${userName},</h2>
+        <p style="font-size: 16px;">
+            Thank you for registering on our platform. Your account is currently <strong style="color: #d97706;">pending approval</strong>.
+        </p>
+        <p style="font-size: 16px;">
+            Our team will review your registration shortly. You will receive another email once your account has been approved and activated.
+        </p>
+        <p style="font-size: 16px;">
+            We appreciate your patience!
+        </p>
+
+        <hr style="margin: 32px 0; border: none; border-top: 1px solid #ddd;" />
+
+        <h3 style="color: #444; margin-bottom: 12px;">Important Instructions:</h3>
+        <ul style="font-size: 14px; color: #555; padding-left: 20px; margin-top: 0;">
+            <li>Please ensure <code style="background:#eaeaea; padding:2px 6px; border-radius:4px;">0.0.0.0/0</code> is added to the <strong>IP Access List</strong> in your MongoDB Atlas cluster's Network Access settings to allow connections.</li>
+            <li>Double-check your environment variables (like <code>mongo_uri</code>) are correctly configured in your deployment platform (e.g., Vercel).</li>
+            <li>Keep your token secure; do not share it publicly.</li>
+        </ul>
+
+        <br />
+
+        <p style="font-size: 14px; color: #666; margin-top: 24px;">
+            Best regards,<br />
+            <strong>Harsh Chandak</strong><br />
+            <a href="https://github.com/harsh-chandak" target="_blank" style="color: #0070f3; text-decoration: none;">GitHub</a> | 
+            <a href="https://www.linkedin.com/in/hnchandak/" target="_blank" style="color: #0070f3; text-decoration: none;">LinkedIn</a>
+        </p>
+    </div>
   `;
 
     await transporter.sendMail({

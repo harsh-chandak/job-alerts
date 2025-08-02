@@ -43,7 +43,7 @@ export default function ForgotPassword() {
             if (!res.ok) throw new Error(data.error || 'Failed to reset password');
 
             setStatus('✅ Password has been reset successfully. You can now login.');
-            router.forward('/')
+            router.push('/')
             setStep(1);
             setEmail('');
             setOtp('');

@@ -32,17 +32,23 @@ export default async function handler(req, res) {
         });
     
         const html = `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f9fafb; color: #111827;">
-          <div style="max-width: 500px; margin: auto; background: white; border-radius: 8px; padding: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.06);">
-            <h2 style="color: #111827;">🔐 Password Reset OTP</h2>
-            <p style="font-size: 16px;">Use the following OTP to reset your password. This OTP is valid for <strong>5 minutes</strong>.</p>
-            <div style="font-size: 28px; font-weight: bold; margin: 20px 0; text-align: center; letter-spacing: 4px; color: #2563eb;">
-              ${otp}
+            <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; padding: 30px;">
+                <div style="max-width: 480px; margin: auto; background: #ffffff; border-radius: 12px; padding: 30px 40px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); color: #1f2937;">
+                    <h2 style="font-size: 28px; font-weight: 700; color: #2563eb; margin-bottom: 16px;">🔐 Password Reset OTP</h2>
+                    <p style="font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+                        Use the following <strong>One-Time Password (OTP)</strong> to reset your password. This code is valid for <strong>5 minutes</strong>.
+                    </p>
+                    <div style="font-size: 36px; font-weight: 900; letter-spacing: 8px; text-align: center; padding: 20px 0; margin-bottom: 24px; border-radius: 12px; background: #e0e7ff; color: #1e40af; user-select: all;">
+                        ${otp}
+                    </div>
+                    <p style="font-size: 14px; color: #6b7280; margin-bottom: 8px;">
+                        If you didn’t request this password reset, please ignore this email or contact support if you have concerns.
+                    </p>
+                    <p style="font-size: 12px; color: #9ca3af; text-align: right; margin-top: 32px;">
+                        Sent at: ${new Date().toLocaleString()}
+                    </p>
+                </div>
             </div>
-            <p style="font-size: 14px; color: #6b7280;">If you didn’t request this, you can ignore this email.</p>
-            <p style="font-size: 12px; color: #9ca3af; margin-top: 20px;">Sent at: ${new Date().toLocaleString()}</p>
-          </div>
-        </div>
         `;
     
         await transporter.sendMail({
