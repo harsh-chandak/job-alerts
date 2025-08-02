@@ -300,36 +300,78 @@ graph TD
 
 ```
 job-alerts/
-├── 📁 src/
-│   ├── 📁 app/            # Next.js 13+ App Router
-│   │   └── 📁 components/ # React components
-│   │       ├── 📁 ui/     # UI components
-│   │       │   ├── button.js
-│   │       │   ├── card.js
-│   │       │   ├── input.js
-│   │       │   ├── label.js
-│   │       │   └── textarea.js
-│   │       ├── DraggableJsonField.js
-│   │       └── MappingDropZone.js
-│   └── 📁 pages/
-│       ├── 📁 api/        # API endpoints
-│       │   ├── fetchCompanyApp.js
-│       │   ├── notify.js
-│       │   ├── scrape.js
-│       │   └── upload.js
-│       └── index.js       # Main dashboard
-├── 📁 styles/             # CSS styles
-├── 📁 utils/              # Utility functions
-├── 📁 public/             # Static assets
-├── 📁 node_modules/       # Dependencies
-├── 📄 .env                # Environment variables
-├── 📄 .gitignore          # Git ignore rules
-├── 📄 jsconfig.json       # JavaScript config
-├── 📄 next.config.mjs     # Next.js configuration
-├── 📄 package.json        # Dependencies & scripts
-├── 📄 package-lock.json   # Lock file
-├── 📄 postcss.config.mjs  # PostCSS configuration
-└── 📄 README.md           # This file
+├── 📁 public/ # Static assets like icons, logos, and SVGs
+│
+├── 📁 src/ # Source code
+│ ├── 📁 app/ # App directory for components
+│ │ └── 📁 components/ # Shared UI and logic components
+│ │ ├── 📁 ui/ # Atomic UI components
+│ │ │ ├── button.js # Reusable button component
+│ │ │ ├── card.js # Card layout component
+│ │ │ ├── input.js # Text input component
+│ │ │ ├── label.js # Label for form fields
+│ │ │ ├── textarea.js # Multi-line text input
+│ │ ├── DraggableJsonField.js # JSON drag-and-drop configuration UI //Future Development
+│ │ └── MappingDropZone.js # Mapping UI for matching fields visually
+│
+│ └── 📁 pages/ # Next.js pages and API routes
+│ ├── 📁 api/ # API endpoints for server-side logic
+│ │ ├── 📁 [userSlug]/ # Dynamic user-specific endpoints
+│ │ │ ├── approve.js # Approve user logic
+│ │ │ └── scrape.js # Scraping trigger by user
+│ │ ├── 📁 auth/ # Auth-related APIs
+│ │ │ ├── forgot.js # Request password reset
+│ │ │ ├── forgot-pass-reset.js # Reset password with token
+│ │ │ ├── login.js # User login
+│ │ │ ├── profile.js # Get/update user profile
+│ │ │ ├── register.js # User registration
+│ │ │ ├── reset-password.js # Password reset confirmation
+│ │ │ └── update-profile.js # Update profile fields
+│ │ ├── 📁 companies/
+│ │ │ ├── delete/ # Delete company config
+│ │ │ │ └── [id].js # Delete company by ID
+│ │ │ └── view/ # View individual company details
+│ │ │ └── [id].js # Get company by ID
+│ │ ├── 📁 jobs/ # Job-related operations
+│ │ │ ├── get-all.js # Get all jobs in DB
+│ │ │ ├── check-method.js # Check fetch method for a job
+│ │ │ ├── fetchCompanyApi.js # Generic fetcher for external job APIs
+│ │ │ ├── scrape.js # Scrape job postings
+│ │ │ ├── try-puppeteer.js # Puppeteer test handler
+│ │ │ └── upload.js # Upload jobs from CSV or form
+│
+│ ├── _app.js # App wrapper (global config and styles)
+│ ├── alerts.js # Alerts dashboard
+│ ├── companies.js # Company management UI
+│ ├── forgot.js # Forgot password page
+│ ├── home.js # Home / welcome page
+│ ├── index.js # Redirect or main route
+│ ├── register.js # Register form
+│ └── settings.js # User settings page
+│
+├── 📁 styles/
+│ └── globals.css # Global stylesheet
+│
+├── 📁 utils/ # Utility scripts and helpers
+│ ├── 📁 server/
+│ │ ├── auth.js # Server-side auth functions
+│ │ ├── db.js # MongoDB connection logic
+│ │ └── notify-new-user.js # Notify Discord on new user creation
+│ ├── analyzePage.js # Analyze HTML page content
+│ ├── discordHelper.js # Discord message formatting
+│ ├── dynamicApiScraper.js # Smart scraping based on API schema
+│ ├── failure-notify.js # Notify on failure conditions
+│ ├── flattenJson.js # Flatten nested job listings
+│ ├── scrapper.js # Core scraper logic
+│ └── slugify.js # Converts strings to slugs
+│
+├── .env # Environment variable definitions
+├── .gitignore # Git ignore rules
+├── jsconfig.json # JS module path aliasing
+├── next.config.mjs # Next.js config (custom headers, rewrites)
+├── package.json # Project metadata and dependencies
+├── package-lock.json # Exact dependency versions
+└── README.md # Project documentation
 ```
 
 ### Adding New Features
