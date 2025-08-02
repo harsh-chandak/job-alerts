@@ -6,10 +6,10 @@ async function handler(req, res) {
     try {
         const db = (await masterPromise()).db("job-alerts");
         const User = db.collection('users')
-        const { name, mongo_uri, discoruri } = req.body;
+        const { name, mongo_uri, discoruri, follow_up_discord } = req.body;
         const updated = await User.findOneAndUpdate(
             { _id: new ObjectId(req.user._id) },
-            { $set: { name, mongo_uri, discoruri } },
+            { $set: { name, mongo_uri, discoruri, follow_up_discord } },
             { returnDocument: 'after' } // returns updated doc
         );
 

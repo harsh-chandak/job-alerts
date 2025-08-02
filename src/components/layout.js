@@ -8,6 +8,7 @@ export default function Layout({ children }) {
         <Link href="/home">Home</Link>
         <Link href="/companies">Companies</Link>
         <Link href="/alerts">Alerts</Link>
+        <Link href="/applications">Applications</Link>
         <Link href="/settings">Settings</Link>
       </nav>
       <main>

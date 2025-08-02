@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
+import { Button } from '@/components/ui/button';
 
 export default function Jobs() {
     const [jobs, setJobs] = useState([]);
@@ -32,7 +33,24 @@ export default function Jobs() {
             }
         }
     };
-
+    const markAsApplied = async (id) => {
+        try {
+            await axios.put('/api/jobs/update', { id, update: { status: 'applied', applied_on: new Date() } }, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            fetchJobs();
+        } catch (err) {
+            if (err.response?.status === 403 || err.response?.status === 401) {
+                // ✅ Redirect to login if auth failed
+                localStorage.clear()
+                router.push('/');
+            } else {
+                setError('Failed to update the job');
+            }
+        }
+    };
     useEffect(() => {
         fetchJobs();
     }, []);
@@ -69,15 +87,34 @@ export default function Jobs() {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-100">
-                                {currentJobs.map(job => (
-                                    <tr key={job._id}>
-                                        <td className="px-4 py-2 font-medium">{job.company}</td>
-                                        <td className="px-4 py-2 font-medium">{job.title}</td>
-                                        <td className="px-4 py-2">
-                                            {new Date(job.ts).toLocaleDateString()} @ {new Date(job.ts).toLocaleTimeString()}
-                                        </td>
-                                    </tr>
-                                ))}
+                                {currentJobs.map((job) => {
+                                    const isNotApplied = job.status=="" || job.status==null || !job?.status
+                                    return (
+                                        <tr key={job._id}>
+                                            <td className="px-4 py-2 font-medium">{job.company}</td>
+                                            <td className="px-4 py-2 font-medium">{job.title}</td>
+                                            <td className="px-4 py-2">
+                                                {new Date(job.ts).toLocaleDateString()} @ {new Date(job.ts).toLocaleTimeString()}
+                                                <br />
+                                                <span className="text-xs text-gray-500">
+                                                    Last updated: {new Date(job.ts).toLocaleString()}
+                                                </span>
+                                            </td>
+                                            <td className="px-4 py-2">
+                                                <Button
+                                                    onClick={() => markAsApplied(job._id)}
+                                                    disabled={!isNotApplied}
+                                                    className={`${!isNotApplied
+                                                        ? 'bg-gray-400 cursor-not-allowed'
+                                                        : 'bg-green-600 hover:bg-green-700'
+                                                        }`}
+                                                >
+                                                    {!isNotApplied ? 'Already Applied' : 'Mark as Applied'}
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
