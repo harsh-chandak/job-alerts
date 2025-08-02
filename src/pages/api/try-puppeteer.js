@@ -1,6 +1,7 @@
 // /pages/api/try-puppeteer.js
 import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
+import { sendFailureDiscordNotification } from '@/utils/failure-notify';
 
 export default async function handler(req, res) {
   const { url } = req.body;
@@ -35,6 +36,7 @@ export default async function handler(req, res) {
       content: pageText.slice(0, 5000), // limit to avoid overload
     });
   } catch (err) {
+    await sendFailureDiscordNotification(err, `Try-puppeteer API failed.`)
     console.error('[Puppeteer Error]', err.message);
     return res.status(500).json({
       success: false,

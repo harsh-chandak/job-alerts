@@ -1,3 +1,4 @@
+import { sendFailureDiscordNotification } from '@/utils/failure-notify';
 import axios from 'axios';
 
 export default async function handler(req, res) {
@@ -26,6 +27,7 @@ export default async function handler(req, res) {
     res.status(200).json(response.data);
   } catch (error) {
     console.error('Request failed:', error.response?.data || error.message);
+    await sendFailureDiscordNotification(error, `Try API Json response failed.`)
     res.status(error?.response?.status || 500).json({
       error: error?.response?.data || 'Failed to fetch API',
     });
