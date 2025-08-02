@@ -1,6 +1,6 @@
 // pages/api/scrape.js
 import { scrapeAndNotify } from "@/utils/scrapper";
-import { withAuth } from "../middleware/withAuth";
+import { withAuth } from "@/utils/server/auth";
 
 async function handler(req, res) {
   if (req.method !== "GET") {

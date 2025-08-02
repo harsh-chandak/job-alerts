@@ -1,4 +1,4 @@
-import { withAuth } from "@/pages/middleware/withAuth";
+import { withAuth } from "@/utils/server/auth";
 import { masterPromise } from "@/utils/db";
 import bcrypt from 'bcrypt';
 import { ObjectId } from "mongodb";

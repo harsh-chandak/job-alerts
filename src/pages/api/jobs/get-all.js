@@ -1,4 +1,4 @@
-import { withAuth } from "@/pages/middleware/withAuth";
+import { withAuth } from "@/utils/server/auth";
 import {clientPromise} from "@/utils/db";
 
 async function handler(req, res) {

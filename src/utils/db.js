@@ -1,5 +1,5 @@
 import { MongoClient } from "mongodb";
-import { getConfig } from "@/pages/middleware/withAuth"; // where your decoded user lives
+import { getConfig } from "./server/auth"; // where your decoded user lives
 
 const globalOptions = { useNewUrlParser: true, useUnifiedTopology: true };
 

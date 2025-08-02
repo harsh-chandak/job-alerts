@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb';
 import {clientPromise} from "@/utils/db";
-import { withAuth } from '@/pages/middleware/withAuth';
+import { withAuth } from '@/utils/server/auth';
 
 async function handler(req, res) {
     const db = (await clientPromise(req)).db("job-alerts");

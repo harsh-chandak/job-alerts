@@ -1,5 +1,5 @@
 import { masterPromise } from "@/utils/db";
-import { withAuth } from '@/pages/middleware/withAuth';
+import { withAuth } from "@/utils/server/auth";
 import { ObjectId } from "mongodb";
 
 async function handler(req, res) {

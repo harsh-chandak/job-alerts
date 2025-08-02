@@ -2,7 +2,7 @@
 import formidable from "formidable";
 import fs from "fs";
 import {clientPromise} from "@/utils/db";
-import { withAuth } from "../middleware/withAuth";
+import { withAuth } from "@/utils/server/auth";
 
 export const config = {
   api: {
