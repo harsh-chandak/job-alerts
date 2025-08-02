@@ -1,6 +1,7 @@
 // pages/api/[userSlug]/scrape.js
 
 import { masterPromise } from "@/utils/db";
+import { sendFailureDiscordNotification } from "@/utils/failure-notify";
 import { scrapeAndNotify } from "@/utils/scrapper"; // accepts `req`, `user`
 import { MongoClient } from "mongodb";
 
@@ -35,6 +36,7 @@ export default async function handler(req, res) {
     return res.status(200).json({ message: "Scraping complete and notifications sent if any." });
   } catch (err) {
     console.error("❌ Error in /api/[userSlug]/scrape:", err);
+    await sendFailureDiscordNotification(err, `Scraping went wrong for ${userSlug} user.`)
     return res.status(500).json({ message: "Something went wrong during scraping." });
   }
 }
