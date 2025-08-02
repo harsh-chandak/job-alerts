@@ -2,7 +2,7 @@
 import { notifyDiscord } from './discordhelper';
 import { scrapeGenericApiCompany } from './dynamicApiScraper';
 import { sendFailureDiscordNotification } from './failure-notify';
-import chromium, { executablePath } from 'chrome-aws-lambda';
+import chromium from 'chrome-aws-lambda';
 import puppeteer from 'puppeteer-core';
 import { executablePath } from 'puppeteer';
 
@@ -21,11 +21,6 @@ function matchesConstraints(title = '', location = '') {
 }
 export async function launchBrowser() {
   let executablePath = puppeteer.executablePath();
-
-  if (!executablePath) {
-    // Local development fallback (make sure you have 'puppeteer' installed locally)
-    executablePath = executablePath()
-  }
 
   return puppeteer.launch({
     args: chromium.args,
