@@ -18,7 +18,6 @@ export default async function handler(req, res) {
     } catch (err) {
         return res.status(403).json({ error: "Invalid or expired token" });
     }
-    console.log(decoded)
     const db = (await masterPromise()).db("job-alerts");
     const usersCollection = db.collection("users");
 

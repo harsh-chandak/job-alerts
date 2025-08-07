@@ -18,7 +18,6 @@ export default function Login() {
     try {
       const res = await axios.post('/api/auth/login', { email, password });
       localStorage.setItem('token', res.data.token);  // remove await here
-      console.log('Token saved:', localStorage.getItem('token'));
       router.push('/home');
     } catch (err) {
       console.error(err)

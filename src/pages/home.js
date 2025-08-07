@@ -15,6 +15,25 @@ const ReactJson = dynamic(() => import('react-json-view'), {
 });
 
 export default function Home() {
+    const resetForm = () => {
+        setJsonFile(null);
+        setCompany({
+            name: '',
+            careersUrl: '',
+            customApi: false,
+            careersApi: '',
+            params: [{ key: '', value: '', enabled: true }],
+            headers: [{ key: '', value: '', enabled: true }]
+        });
+        setMapping({
+            jobsPath: '',
+            titlePath: '',
+            idPath: '',
+            locationPath: '',
+            descriptionPath: '',
+        });
+        setRawResponse(null);
+    };
 
     const router = useRouter()
     const [jsonFile, setJsonFile] = useState(null);
@@ -60,12 +79,14 @@ export default function Home() {
                 }
             });
             setStatus(res.data.message);
-        } catch {
+            resetForm(); 
+        } catch (err) {
             if (err.response?.status === 403 || err.response?.status === 401) {
                 // ✅ Redirect to login if auth failed
                 localStorage.clear()
                 router.push('/');
             } else {
+                console.error(err)
                 setStatus('❌ Upload failed');
             }
         }
@@ -129,12 +150,14 @@ export default function Home() {
                 }
             });
             setStatus(res.data.message);
+            resetForm(); 
         } catch (err) {
             if (err.response?.status === 403 || err.response?.status === 401) {
                 // ✅ Redirect to login if auth failed
                 localStorage.clear()
                 router.push('/');
             } else {
+                console.error(err)
                 setStatus('❌ Upload failed');
             }
         }
@@ -217,7 +240,6 @@ export default function Home() {
                 setStatus(`⚠️ Unable to auto-detect jobs — may need manual inspection`);
             }
 
-            console.log('[Analysis]', res.data);
         } catch (err) {
             console.error(err);
             setStatus('❌ Error analyzing page');
