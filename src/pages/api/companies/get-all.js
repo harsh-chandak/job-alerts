@@ -1,40 +1,58 @@
 import { withAuth } from "@/utils/server/auth";
-import {clientPromise} from "@/utils/db";
+import { clientPromise } from "@/utils/db";
 
 async function handler(req, res) {
     try {
         const db = (await clientPromise(req)).db("job-alerts");
         const collection = db.collection("companies");
 
-        
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
-        const skip = (page - 1) * limit;
+        // Read raw query params
+        const pageRaw = req.query.page;
+        const limitRaw = req.query.limit;
 
-        const sortField = req.query.sortField || 'ts';
+        // Validate numbers
+        const pageNum = Number.parseInt(pageRaw, 10);
+        const limitNum = Number.parseInt(limitRaw, 10);
+        const hasPage = Number.isFinite(pageNum) && pageNum > 0;
+        const hasLimit = Number.isFinite(limitNum) && limitNum > 0;
+        const shouldPaginate = hasPage && hasLimit;
 
-        const sortOrder = -1;
+        const sortField = req.query.sortField || "ts";
+        const sortOrder = -1; // or: Number(req.query.sortOrder) || -1
 
+        // Always useful to know total count
         const total = await collection.countDocuments();
 
-        const companies = await collection
-            .find()
-            .sort({ [sortField]: sortOrder })
-            .skip(skip)
-            .limit(limit)
-            .toArray();
+        // Build the base cursor
+        let cursor = collection.find().sort({ [sortField]: sortOrder });
 
-        return res.status(200).json({
+        // Apply pagination only if requested & valid
+        if (shouldPaginate) {
+            const skip = (pageNum - 1) * limitNum;
+            cursor = cursor.skip(skip).limit(limitNum);
+        }
+
+        const companies = await cursor.toArray();
+
+        // Base response
+        const base = {
             success: true,
             message: "Companies data fetched successfully",
             data: companies,
-            pagination: {
+            total, // keep total even when not paginating (can remove if you prefer)
+        };
+
+        // Attach pagination only when used
+        if (shouldPaginate) {
+            base.pagination = {
                 total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit),
-            },
-        });
+                page: pageNum,
+                limit: limitNum,
+                totalItems: Math.max(1, Math.ceil(total / limitNum)),
+            };
+        }
+
+        return res.status(200).json(base);
     } catch (err) {
         console.error(err);
         return res.status(500).json({
@@ -44,4 +62,5 @@ async function handler(req, res) {
         });
     }
 }
-export default withAuth(handler)
+
+export default withAuth(handler);

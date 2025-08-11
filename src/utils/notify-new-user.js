@@ -7,11 +7,10 @@ export async function notifyNewUserDiscord({ userName, userSlug }) {
     try {
         const approveUrl = `${process.env.NEXT_PUBLIC_DEPLOYED_ON || 'http://localhost:3000'}/api/${userSlug}/approve`;
 
-        const body = {
+        await axios.post(discordWebhook, {
             content: `🚨 **New User Registration Alert**\n\n**User**: ${userName}\n\n👉 [✅ Approve this user](${approveUrl})`,
-        };
-
-        await axios.post(discordWebhook, body);
+            flags: 4096, // suppress embeds (previews)
+        });
     } catch (err) {
         await sendFailureDiscordNotification(
             err,

@@ -31,7 +31,11 @@ export default function DeleteCompany() {
           // ✅ Redirect to login if auth failed
           localStorage.clear()
           router.push('/');
-        } else {
+        } 
+        else if (err.response?.status == 423){
+          setError('❌ Demo users are not allowed to delete company.');
+        }
+        else {
           setError('❌ Failed to delete company.');
         }
       }

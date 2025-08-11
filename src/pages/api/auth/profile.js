@@ -2,10 +2,14 @@ import { masterPromise } from "@/utils/db";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { ObjectId } from "mongodb";
+import { withAuth } from "@/utils/server/auth";
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-export default async function handler(req, res) {
+async function handler(req, res) {
+    if (req.user?.readOnly) {
+        return res.status(423).json({ error: 'Demo accounts are read-only' });
+    }
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
@@ -45,3 +49,5 @@ export default async function handler(req, res) {
         res.status(405).json({ error: "Method not allowed" });
     }
 }
+
+export default withAuth(handler)

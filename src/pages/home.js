@@ -37,6 +37,8 @@ export default function Home() {
 
     const router = useRouter()
     const [jsonFile, setJsonFile] = useState(null);
+    const [message, setMessage] = useState('');
+
     const [company, setCompany] = useState({
         name: '',
         careersUrl: '',
@@ -61,9 +63,19 @@ export default function Home() {
                     Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
             });
-        } catch {
-            localStorage.clear()
-            router.push('/');
+        } catch (err) {
+            if (err.response?.status === 423) {
+                setMessage('❌ Demo user can not access this.');
+
+            }
+            else if (err.response?.status === 403) {
+                localStorage.clear();
+                router.push('/');
+            } else {
+                setMessage('❌ Failed to fetch profile');
+                localStorage.clear()
+                router.push('/');
+            }
         }
     };
 
@@ -79,7 +91,7 @@ export default function Home() {
                 }
             });
             setStatus(res.data.message);
-            resetForm(); 
+            resetForm();
         } catch (err) {
             if (err.response?.status === 403 || err.response?.status === 401) {
                 // ✅ Redirect to login if auth failed
@@ -150,7 +162,7 @@ export default function Home() {
                 }
             });
             setStatus(res.data.message);
-            resetForm(); 
+            resetForm();
         } catch (err) {
             if (err.response?.status === 403 || err.response?.status === 401) {
                 // ✅ Redirect to login if auth failed
@@ -272,11 +284,49 @@ export default function Home() {
             <h1 className="text-3xl font-bold text-center">🚀 Job Tracker Configurator</h1>
 
             {/* Bulk Upload */}
+            {/* Single Upload Instructions */}
             <Card>
                 <CardContent className="p-6 space-y-4">
-                    <h2 className="text-xl font-semibold">📁 Bulk Upload (.json)</h2>
-                    <Input type="file" accept="application/json" onChange={(e) => setJsonFile(e.target.files[0])} />
-                    <Button onClick={handleJsonUpload}>Upload</Button>
+                    <h2 className="text-xl font-semibold">📝 Instructions for Single Company Upload</h2>
+                    <ol className="list-decimal text-sm text-gray-700 pl-5 space-y-2">
+                        <li>
+                            Go to the <strong>company career page</strong> you want to scrape job data from, and copy the URL.
+                        </li>
+                        <li>
+                            Paste that URL in the <strong>Careers URL</strong> field below and click the{" "}
+                            <em>🧪 Try Scraping Page</em> button to test if the job data loads correctly.
+                        </li>
+                        <li>
+                            If you successfully get job data, great! You can proceed directly to submission. <br />
+                            Otherwise, enable the <em>Custom API</em> option and find the company’s public API endpoint and parameters manually.
+                        </li>
+                        <li>
+                            Use the Postman-like section to add query parameters and headers, then click{" "}
+                            <em>Test API and Load Response</em> to verify the data.
+                        </li>
+                        <li>
+                            In the <strong>Response Mapping</strong> section, write the JSON paths exactly as they appear. <br />
+                            <span className="text-xs text-gray-500">
+                                Example: if jobs are at <code>res.data.jobs.acquisitions[0].list</code>, enter that path precisely.
+                            </span>
+                        </li>
+                        <li>
+                            Once your configuration works, go to <strong>Settings</strong> to find your personal{" "}
+                            <em>Cronjob API Endpoint</em>. <br />
+                            Use this URL to create a cronjob on{" "}
+                            <a
+                                href="https://cron-job.org"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-blue-600 hover:underline"
+                            >
+                                cron-job.org
+                            </a>.
+                        </li>
+                        <li className="text-amber-700 font-semibold">
+                            Important: Set your cronjob interval to <strong>no less than 30 minutes</strong> to avoid account suspension.
+                        </li>
+                    </ol>
                 </CardContent>
             </Card>
 
@@ -527,6 +577,7 @@ export default function Home() {
             </Card>
 
             {status && <p className="text-center text-blue-700 font-medium">{status}</p>}
+            {message && <p className="text-center text-blue-600 font-medium pt-2">{message}</p>}
         </main>
     );
 }

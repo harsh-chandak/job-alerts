@@ -11,26 +11,42 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const handleLogin = async () => {
-    localStorage.clear()
+
+  const handleLogin = async (creds) => {
+    localStorage.clear();
     setLoading(true);
     setError('');
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);  // remove await here
+      const res = await axios.post('/api/auth/login', creds);
+      localStorage.setItem('token', res.data.token);
       router.push('/home');
     } catch (err) {
-      console.error(err)
+      console.error(err);
       setError(err?.response?.data?.error || 'Login failed');
     }
     setLoading(false);
   };
 
-
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) router.push('/home');
-  }, []);
+    if (token) {
+      router.push('/home');
+      return;
+    }
+
+    // 🔹 Auto-login if ?demo=true is in the URL
+    if (router.isReady && router.query.demo === 'true') {
+      const demoEmail = process.env.NEXT_PUBLIC_DEMO_EMAIL;
+      const demoPass = process.env.NEXT_PUBLIC_DEMO_PASSWORD;
+
+      if (!demoEmail || !demoPass) {
+        console.error('Demo credentials are not set in env.');
+        return;
+      }
+
+      handleLogin({ email: demoEmail, password: demoPass, demo:true });
+    }
+  }, [router.isReady, router.query]);
 
   return (
     <main className="flex flex-col items-center justify-center min-h-screen p-6">
@@ -48,7 +64,11 @@ export default function Login() {
           value={password}
           onChange={e => setPassword(e.target.value)}
         />
-        <Button className="w-full" onClick={handleLogin} disabled={loading}>
+        <Button
+          className="w-full"
+          onClick={() => handleLogin({ email, password })}
+          disabled={loading}
+        >
           {loading ? 'Logging in...' : 'Login'}
         </Button>
         {error && <p className="text-red-500 text-sm">{error}</p>}

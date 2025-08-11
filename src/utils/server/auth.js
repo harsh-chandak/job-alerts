@@ -17,7 +17,7 @@ export async function verifyToken(req, res, next) {
     const user = await users.findOne({ _id: new ObjectId(decoded.id) });
     if (!user) return res.status(403).json({ error: 'Forbidden: Invalid user' });
     if (!user.is_approved) return res.status(403).json({ error: 'User not approved yet' });
-
+    user.readOnly = decoded?.readOnly
     req.user = user;
     next();
   } catch (err) {

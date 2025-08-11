@@ -1,8 +1,11 @@
 import { ObjectId } from 'mongodb';
-import {clientPromise} from "@/utils/db";
+import { clientPromise } from "@/utils/db";
 import { withAuth } from '@/utils/server/auth';
 
 async function handler(req, res) {
+    if (req.user?.readOnly) {
+        return res.status(423).json({ error: 'Demo accounts are read-only' });
+    }
     const db = (await clientPromise(req)).db("job-alerts");
 
     if (req.method !== 'DELETE') {

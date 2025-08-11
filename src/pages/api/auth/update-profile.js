@@ -3,6 +3,9 @@ import { withAuth } from "@/utils/server/auth";
 import { ObjectId } from "mongodb";
 
 async function handler(req, res) {
+    if (req.user?.readOnly) {
+        return res.status(423).json({ error: 'Demo accounts are read-only' });
+    }
     try {
         const db = (await masterPromise()).db("job-alerts");
         const User = db.collection('users')

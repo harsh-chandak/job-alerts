@@ -6,24 +6,28 @@ async function handler(req, res) {
         const db = (await clientPromise(req)).db("job-alerts");
         const collection = db.collection("sentJobs");
 
-
-        const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 20;
-        const skip = (page - 1) * limit;
-
-        const sortField = req.query.sortField || 'ts';
-
+        const sortField = req.query.sortField || "ts";
         const sortOrder = -1;
 
-        const total = await collection.countDocuments();
         const { status, search, start, end, onlyApplications } = req.query;
 
+        // Build query
         const query = {};
         if (onlyApplications) {
-            query.status = { $in: ['applied', 'shortlisted', 'interview', 'selected', 'rejected', 'inactive', 'no-reply'] };
+            query.status = {
+                $in: [
+                    "applied",
+                    "shortlisted",
+                    "interview",
+                    "selected",
+                    "rejected",
+                    "inactive",
+                    "no-reply",
+                ],
+            };
         }
         if (status) query.status = status;
-        if (search) query.title = { $regex: search, $options: 'i' };
+        if (search) query.title = { $regex: search, $options: "i" };
         if (start || end) {
             if (onlyApplications) {
                 query.applied_on = {};
@@ -35,23 +39,40 @@ async function handler(req, res) {
                 if (end) query.createdAt.$lte = new Date(end);
             }
         }
-        const jobs = await collection
+
+        // Check if pagination params exist
+        const hasPagination =
+            req.query.page !== undefined && req.query.limit !== undefined;
+
+        let jobs;
+        let pagination = null;
+
+
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+
+        const total = await collection.countDocuments(query);
+        jobs = await collection
             .find(query)
             .sort({ [sortField]: sortOrder })
             .skip(skip)
             .limit(limit)
             .toArray();
 
+        pagination = {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        };
+
+
         return res.status(200).json({
             success: true,
             message: "Jobs data fetched successfully",
             data: jobs || [],
-            pagination: {
-                total,
-                page,
-                limit,
-                totalPages: Math.ceil(total / limit),
-            },
+            pagination, // Only send pagination if it's used
         });
     } catch (err) {
         console.error(err);
@@ -62,4 +83,5 @@ async function handler(req, res) {
         });
     }
 }
-export default withAuth(handler)
+
+export default withAuth(handler);

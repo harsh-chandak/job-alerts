@@ -3,6 +3,9 @@ import { withAuth } from '@/utils/server/auth';
 import { ObjectId } from 'mongodb';
 
 const handler = async (req, res, user) => {
+  if (req.user?.readOnly) {
+    return res.status(423).json({ error: 'Demo accounts are read-only' });
+  }
   if (req.method !== 'PUT') return res.status(405).end();
 
   const { id, update } = req.body;

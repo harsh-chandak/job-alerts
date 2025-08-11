@@ -33,9 +33,17 @@ export default function Settings() {
                 follow_up_discord: res.data.data.follow_up_discord || '',
                 slug: res.data.data.slug,
             });
-        } catch {
-            localStorage.clear();
-            router.push('/');
+        } catch (err) {
+            if (err.response?.status === 423) {
+                setMessage('❌ Demo user can not access this.');
+
+            }
+            else if (err.response?.status === 403) {
+                localStorage.clear();
+                router.push('/');
+            } else {
+                setMessage('❌ Failed to get profile');
+            }
         } finally {
             setLoading(false);
         }
@@ -54,7 +62,11 @@ export default function Settings() {
             });
             setMessage('✅ Profile updated successfully');
         } catch (err) {
-            if (err.response?.status === 403) {
+            if (err.response?.status === 423) {
+                setMessage('❌ Demo user can not access this.');
+
+            }
+            else if (err.response?.status === 403) {
                 localStorage.clear();
                 router.push('/');
             } else {
@@ -161,27 +173,27 @@ export default function Settings() {
                     readOnly
                     value={`${process.env.NEXT_PUBLIC_DEPLOYED_ON}/api/${profile.slug}/scrape`}
                     className="w-full bg-gray-100 px-3 py-2 border rounded text-gray-500 cursor-text"
-                    />
+                />
             </section>
-                    {profile.follow_up_discord ? (
-                        <div className="mt-4">
-                            <label className="text-sm font-medium">🔗 Cronjob API Endpoint: Set Follow-up Reminders</label>
-                            <Input
-                                readOnly
-                                value={`${process.env.NEXT_PUBLIC_DEPLOYED_ON}/api/${profile.slug}/follow-up`}
-                                className="w-full bg-gray-100 px-3 py-2 border rounded text-gray-500 cursor-text"
-                            />
-                        </div>
-                    ) : (
-                        <div className="mt-4">
-                            <label className="text-sm font-medium">🔗 Cronjob API Endpoint: Set Follow-up Reminders</label>
-                            <Input
-                                readOnly
-                                value={`You have not added discord channel webhook for follow-up updates.`}
-                                className="w-full bg-gray-100 px-3 py-2 border rounded text-gray-500 cursor-text"
-                            />
-                        </div>
-                    )}
+            {profile.follow_up_discord ? (
+                <div className="mt-4">
+                    <label className="text-sm font-medium">🔗 Cronjob API Endpoint: Set Follow-up Reminders</label>
+                    <Input
+                        readOnly
+                        value={`${process.env.NEXT_PUBLIC_DEPLOYED_ON}/api/${profile.slug}/follow-up`}
+                        className="w-full bg-gray-100 px-3 py-2 border rounded text-gray-500 cursor-text"
+                    />
+                </div>
+            ) : (
+                <div className="mt-4">
+                    <label className="text-sm font-medium">🔗 Cronjob API Endpoint: Set Follow-up Reminders</label>
+                    <Input
+                        readOnly
+                        value={`You have not added discord channel webhook for follow-up updates.`}
+                        className="w-full bg-gray-100 px-3 py-2 border rounded text-gray-500 cursor-text"
+                    />
+                </div>
+            )}
 
             <section className="space-y-4">
                 <h2 className="text-lg font-semibold">Change Password</h2>
