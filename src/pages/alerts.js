@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useRouter } from 'next/router';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 /* ---- Compact Pagination ---- */
 function Pagination({ totalPages, currentPage, onChange }) {
@@ -61,6 +62,7 @@ export default function Jobs() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [filters, setFilters] = useState({ status: '', search: '', start: '', end: '' });
 
   const router = useRouter();
 
@@ -74,6 +76,7 @@ export default function Jobs() {
 
       const res = await axios.get('/api/jobs/get-all', {
         params: {
+          ...filters,
           page: currentPage,
           limit: itemsPerPage
         },
@@ -107,17 +110,20 @@ export default function Jobs() {
 
   useEffect(() => {
     fetchJobs();
-  }, [currentPage, itemsPerPage]);
+  }, [currentPage, itemsPerPage, filters]);
 
   const markAsApplied = async (id) => {
     try {
+      setLoading(true)
       await axios.put(
         '/api/jobs/update',
         { id, update: { status: 'applied', applied_on: new Date() } },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
       fetchJobs();
+      setLoading(false)
     } catch (err) {
+      setLoading(false)
       if (err.response?.status === 403 || err.response?.status === 401) {
         localStorage.clear();
         router.push('/');
@@ -136,6 +142,53 @@ export default function Jobs() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">📋 All Jobs</h1>
+      {/* Filters */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+        <Input
+          placeholder="Search by title..."
+          value={filters.search}
+          onChange={(e) => {
+            setFilters((f) => ({ ...f, search: e.target.value }));
+            setCurrentPage(1);
+          }}
+          className="border-indigo-300 focus:ring-indigo-500"
+        />
+        <select
+          value={filters.status}
+          onChange={(e) => {
+            setFilters((f) => ({ ...f, status: e.target.value }));
+            setCurrentPage(1);
+          }}
+          className="border border-indigo-300 rounded p-2 focus:ring-indigo-500"
+        >
+          <option value="">All Statuses</option>
+          <option value="applied">Applied</option>
+          <option value="shortlisted">Shortlisted</option>
+          <option value="interview">Interview</option>
+          <option value="selected">Selected</option>
+          <option value="rejected">Rejected</option>
+          <option value="inactive">Inactive</option>
+          <option value="no-reply">No Reply</option>
+        </select>
+        <Input
+          type="date"
+          value={filters.start}
+          onChange={(e) => {
+            setFilters((f) => ({ ...f, start: e.target.value }));
+            setCurrentPage(1);
+          }}
+          className="border-indigo-300 focus:ring-indigo-500"
+        />
+        <Input
+          type="date"
+          value={filters.end}
+          onChange={(e) => {
+            setFilters((f) => ({ ...f, end: e.target.value }));
+            setCurrentPage(1);
+          }}
+          className="border-indigo-300 focus:ring-indigo-500"
+        />
+      </div>
 
       {loading ? (
         <p>Loading...</p>

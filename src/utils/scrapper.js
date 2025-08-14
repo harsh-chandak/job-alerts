@@ -1,16 +1,20 @@
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import chromium from '@sparticuz/chromium';
 import { notifyDiscord } from './discordhelper';
 import { scrapeGenericApiCompany } from './dynamicApiScraper';
 import { sendFailureDiscordNotification } from './failure-notify';
-
+puppeteer.use(StealthPlugin());
 
 const constraints = {
   include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],
   location: ['remote', 'united states', 'usa'],
-  exclude: ['senior', 'director', 'citizen', 'sr'],
+  exclude: ['senior', 'director', 'citizen', 'sr', 'manager', 'principle', 'staff'],
 };
 
+function norm(s) {
+  return (s || '').toString().trim();
+}
 function matchesConstraints(title = '', location = '') {
   const text = `${title} ${location}`.toLowerCase();
   const hasInclude = constraints.include.some(word => text.includes(word));
@@ -21,6 +25,7 @@ function matchesConstraints(title = '', location = '') {
 
 export async function scrapeAndNotify(req, db, user) {
   const companies = await db.collection("companies").find().toArray();
+
   const browser = await puppeteer.launch({
     args: chromium.args,
     defaultViewport: chromium.defaultViewport,
@@ -57,9 +62,22 @@ export async function scrapeAndNotify(req, db, user) {
           })
       });
       for (const job of jobs) {
-        if (!await db.collection("sentJobs").findOne({ id: String(job.id), company: company.name, title: job.title })) {
-          allNewJobs.push({ ...job, company: company.name, career_page: company.careersUrl });
-          await db.collection("sentJobs").insertOne({ id: String(job.id), ts: new Date(), company: company.name, title: job.title });
+        const title = norm(job.title);
+        const location = norm(job.location);
+        // 🔒 filter by constraints before doing any DB work
+        if (!matchesConstraints(title, location)) continue;
+        const id = String(job.id || job.url || `${company.name}:${title}`);
+        const exists = await db.collection("sentJobs").findOne({ id, company: company.name, title });
+        if (!exists) {
+          const toPush = { ...job, id, company: company.name, career_page: company.careersUrl };
+          allNewJobs.push(toPush);
+          await db.collection("sentJobs").insertOne({
+            id,
+            ts: new Date(),
+            company: company.name,
+            title,
+            location: location || undefined,
+          });
         }
       }
     } catch (err) {

@@ -10,7 +10,7 @@ import Layout from '@/components/layout';
 import { Label } from '@/components/ui/label';
 import { useRouter } from 'next/router';
 
-const ReactJson = dynamic(() => import('react-json-view'), {
+const ReactJson = dynamic(() => import('react18-json-view'), {
     ssr: false,
 });
 

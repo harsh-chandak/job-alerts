@@ -12,7 +12,7 @@
     "@sparticuz/chromium": "^138.0.2",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
-    "chrome-aws-lambda": "^1.20.1",
+    "cheerio": "^1.1.2",
     "formidable": "^3.5.4",
     "jsonwebtoken": "^9.0.2",
     "lodash.chunk": "^4.2.0",
@@ -21,14 +21,16 @@
     "mongoose": "^8.17.0",
     "next": "15.4.4",
     "nodemailer": "^7.0.5",
-    "puppeteer": "^24.15.0",
     "puppeteer-core": "^21.11.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "react": "^19.1.0",
+    "react": "19.1.0",
     "react-dnd": "^16.0.1",
     "react-dnd-html5-backend": "^16.0.1",
     "react-dom": "19.1.0",
-    "react-json-view": "^1.21.3"
+    "react18-json-view": "^0.2.9"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.16.1"
   }
 }

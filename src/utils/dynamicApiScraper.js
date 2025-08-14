@@ -54,8 +54,17 @@ export async function scrapeGenericApiCompany(companyConfig, db, constraints, us
 }
 
 function matchesConstraints(text, constraints) {
-    const hasInclude = constraints.include.some(w => text.includes(w));
-    const hasLocation = constraints.location.some(w => text.includes(w));
-    const hasExclude = constraints.exclude.some(w => text.includes(w));
-    return hasInclude && hasLocation && !hasExclude;
+  const text = `${title} ${location}`.toLowerCase();
+
+  const norm = arr => (arr || []).map(w => w.trim().toLowerCase());
+
+  const includeList = norm(constraints.include);
+  const locationList = norm(constraints.location);
+  const excludeList = norm(constraints.exclude);
+
+  const hasInclude = includeList.some(word => text.includes(word));
+  const hasLocation = locationList.some(word => text.includes(word));
+  const hasExclude = excludeList.some(word => text.includes(word));
+
+  return hasInclude && hasLocation && !hasExclude;
 }

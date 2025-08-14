@@ -27,7 +27,13 @@ async function handler(req, res) {
             };
         }
         if (status) query.status = status;
-        if (search) query.title = { $regex: search, $options: "i" };
+        if (search) {
+            query.$or = [
+                { title: { $regex: search, $options: "i" } },
+                { company: { $regex: search, $options: "i" } }
+            ];
+        }
+
         if (start || end) {
             if (onlyApplications) {
                 query.applied_on = {};
@@ -39,10 +45,6 @@ async function handler(req, res) {
                 if (end) query.createdAt.$lte = new Date(end);
             }
         }
-
-        // Check if pagination params exist
-        const hasPagination =
-            req.query.page !== undefined && req.query.limit !== undefined;
 
         let jobs;
         let pagination = null;
