@@ -1,6 +1,7 @@
 // utils/dynamicApiScraper.js
 import axios from 'axios';
 import { sendFailureDiscordNotification } from './failure-notify';
+import { matchesConstraints } from './exclusionCheck';
 
 function deepGet(obj, path) {
     if (!path) return undefined;
@@ -19,20 +20,7 @@ function slugify(text = '') {
     return text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
 }
 
-function matchesConstraints(text, constraints) {
-    const norm = arr => (arr || []).map(w => w.trim().toLowerCase());
-    const includeList = norm(constraints.include);
-    const locationList = norm(constraints.location);
-    const excludeList = norm(constraints.exclude);
-
-    const hasInclude = includeList.some(word => text.includes(word));
-    const hasLocation = locationList.some(word => text.includes(word));
-    const hasExclude = excludeList.some(word => text.includes(word));
-
-    return hasInclude && hasLocation && !hasExclude;
-}
-
-export async function scrapeGenericApiCompany(companyConfig, db, constraints, user) {
+export async function scrapeGenericApiCompany(companyConfig, db, user) {
     const { name, careersApi, params, responseMapping, method = 'GET', careersUrl, headers } = companyConfig;
     const { jobsPath, fields } = responseMapping;
     const newJobs = [];
@@ -80,20 +68,20 @@ export async function scrapeGenericApiCompany(companyConfig, db, constraints, us
             const id = String(deepGet(job, fields.id));
             const location = deepGet(job, fields.location) || '';
             const description = deepGet(job, fields.description) || '';
-
             if (!title || !id) continue;
+            if (matchesConstraints(title)) {
 
-            const fullText = `${title} ${location} ${description}`.toLowerCase();
-            const exists = await db.collection('sentJobs').findOne({ id, company: name });
+                const exists = await db.collection('sentJobs').findOne({ id, company: name });
 
-            if (!exists) {
-                newJobs.push({
-                    title,
-                    id,
-                    location,
-                    company: name,
-                    career_page: careersUrl,
-                });
+                if (!exists) {
+                    newJobs.push({
+                        title,
+                        id,
+                        location,
+                        company: name,
+                        career_page: careersUrl,
+                    });
+                }
             }
         }
     } catch (err) {

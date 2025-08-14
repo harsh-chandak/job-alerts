@@ -4,12 +4,7 @@ import chromium from '@sparticuz/chromium';
 import { notifyDiscord } from './discordhelper';
 import { scrapeGenericApiCompany } from './dynamicApiScraper';
 import { sendFailureDiscordNotification } from './failure-notify';
-
-const constraints = {
-  include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],
-  // dropped hard location requirement for broader catch; filter below by include/exclude only
-  exclude: ['senior', 'director', 'citizen', 'sr', 'manager', 'principal', 'staff'],
-};
+import { matchesConstraints } from './exclusionCheck';
 
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
@@ -18,12 +13,11 @@ function norm(s) {
   return (s || '').toString().trim();
 }
 
-function matchesConstraints(title = '', location = '') {
-  const text = `${title} ${location}`.toLowerCase();
-  const hasInclude = constraints.include.some(word => text.includes(word));
-  const hasExclude = constraints.exclude.some(word => text.includes(word));
-  return hasInclude && !hasExclude;
-}
+const constraints = {
+  include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],
+  // dropped hard location requirement for broader catch; filter below by include/exclude only
+  exclude: ['senior', 'director', 'citizen', 'sr', 'manager', 'principal', 'staff'],
+};
 
 // Heuristics to pull jobs out of various API responses
 function tryParseJobsFromJSON(json) {
@@ -125,10 +119,10 @@ export async function scrapeAndNotify(req, db, user) {
     try {
       // 1) If company has a Custom API config, use that path (fast + robust)
       if (company.customApi) {
-        const apiJobs = await scrapeGenericApiCompany(company, db, constraints, user);
+        const apiJobs = await scrapeGenericApiCompany(company, db, user);
         for (const job of apiJobs) {
           // filter again just in case
-          if (!matchesConstraints(job.title, job.location)) continue;
+          if (!matchesConstraints(job.title)) continue;
           const dedupId = String(job.id || job.url || `${company.name}:${job.title}`);
           const exists = await db.collection('sentJobs').findOne({
             id: dedupId,
@@ -247,31 +241,31 @@ export async function scrapeAndNotify(req, db, user) {
       for (const job of merged) {
         const title = norm(job.title);
         const location = norm(job.location);
-        if (!matchesConstraints(title, location)) continue;
-
-        const id = String(job.id || job.url || `${company.name}:${title}`);
-        const exists = await db.collection('sentJobs').findOne({
-          id,
-          company: company.name,
-          title,
-        });
-
-        if (!exists) {
-          const toPush = {
-            ...job,
+        if (matchesConstraints(title)) {
+          const id = String(job.id || job.url || `${company.name}:${title}`);
+          const exists = await db.collection('sentJobs').findOne({
             id,
-            company: company.name,
-            career_page: company.careersUrl,
-          };
-          allNewJobs.push(toPush);
-
-          await db.collection('sentJobs').insertOne({
-            id,
-            ts: new Date(),
             company: company.name,
             title,
-            location: location || undefined,
           });
+
+          if (!exists) {
+            const toPush = {
+              ...job,
+              id,
+              company: company.name,
+              career_page: company.careersUrl,
+            };
+            allNewJobs.push(toPush);
+
+            await db.collection('sentJobs').insertOne({
+              id,
+              ts: new Date(),
+              company: company.name,
+              title,
+              location: location || undefined,
+            });
+          }
         }
       }
     } catch (err) {
