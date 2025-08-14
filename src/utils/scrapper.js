@@ -4,7 +4,13 @@ import chromium from '@sparticuz/chromium';
 import { notifyDiscord } from './discordhelper';
 import { scrapeGenericApiCompany } from './dynamicApiScraper';
 import { sendFailureDiscordNotification } from './failure-notify';
-puppeteer.use(StealthPlugin());
+
+const stealth = StealthPlugin();
+stealth.enabledEvasions.delete('chrome.app');
+stealth.enabledEvasions.delete('chrome.csi'); // Optional, sometimes breaks too
+
+puppeteer.use(stealth);
+
 
 const constraints = {
   include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],

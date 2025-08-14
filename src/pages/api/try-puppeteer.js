@@ -6,7 +6,11 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import chromium from '@sparticuz/chromium';
 import { sendFailureDiscordNotification } from '@/utils/failure-notify';
 
-puppeteer.use(StealthPlugin());
+const stealth = StealthPlugin();
+stealth.enabledEvasions.delete('chrome.app');
+stealth.enabledEvasions.delete('chrome.csi'); // Optional, sometimes breaks too
+
+puppeteer.use(stealth);
 
 // Heuristic: running in a serverless environment?
 const isServerless =
