@@ -7,8 +7,15 @@ import chromium from '@sparticuz/chromium';
 import { sendFailureDiscordNotification } from '@/utils/failure-notify';
 
 const stealth = StealthPlugin();
-stealth.enabledEvasions.delete('chrome.app');
-stealth.enabledEvasions.delete('chrome.csi'); // Optional, sometimes breaks too
+[
+  'chrome.app',
+  'chrome.csi',
+  'chrome.loadTimes',   // <-- the one causing your error
+  'chrome.runtime',
+  // optional: these sometimes cause trouble too
+  'iframe.contentWindow',
+  'media.codecs'
+].forEach(name => stealth.enabledEvasions.delete(name));
 
 puppeteer.use(stealth);
 
