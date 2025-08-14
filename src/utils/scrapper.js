@@ -4,8 +4,6 @@ import { notifyDiscord } from './discordhelper';
 import { scrapeGenericApiCompany } from './dynamicApiScraper';
 import { sendFailureDiscordNotification } from './failure-notify';
 
-const norm = (s) => (s || '').toString().trim();
-
 const constraints = {
   include: ['intern', 'internship', 'co-op', 'software', 'developer', 'engineering', 'data', 'engineer'],
   location: ['remote', 'united states', 'usa'],
@@ -65,7 +63,7 @@ export async function scrapeAndNotify(req, db, user) {
 
         // Apply constraints AFTER extraction
         if (!matchesConstraints(title, location)) continue;
-        
+
         if (!await db.collection("sentJobs").findOne({ id: String(job.id), company: company.name, title: job.title })) {
           allNewJobs.push({ ...job, company: company.name, career_page: company.careersUrl });
           await db.collection("sentJobs").insertOne({ id: String(job.id), ts: new Date(), company: company.name, title: job.title });
