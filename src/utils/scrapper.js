@@ -6,15 +6,8 @@ import { scrapeGenericApiCompany } from './dynamicApiScraper';
 import { sendFailureDiscordNotification } from './failure-notify';
 
 const stealth = StealthPlugin();
-[
-  'chrome.app',
-  'chrome.csi',
-  'chrome.loadTimes',   // <-- the one causing your error
-  'chrome.runtime',
-  // optional: these sometimes cause trouble too
-  'iframe.contentWindow',
-  'media.codecs'
-].forEach(name => stealth.enabledEvasions.delete(name));
+
+stealth.enabledEvasions.clear();
 
 puppeteer.use(stealth);
 
