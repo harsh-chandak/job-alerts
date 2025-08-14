@@ -1,4 +1,5 @@
 // pages/api/[userSlug]/scrape.js
+import cronHelper from "@/utils/cronHelper";
 import { sendFailureDiscordNotification } from "@/utils/failure-notify";
 
 export default async function handler(req, res) {
