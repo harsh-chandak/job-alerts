@@ -40,15 +40,19 @@ export async function scrapeGenericApiCompany(companyConfig, db, constraints, us
     // Build params object
     const params_obj = {};
     for (let i = 0; i < params?.length; i++) {
-        const { key, value, enabled } = params[i];
-        if (enabled) params_obj[key.trim()] = value.trim();
+        const { key, value, enabled } = params[i] || {};
+        if (!enabled) continue;
+        if (!key || !key.trim()) continue; // skip invalid or empty header keys
+        params_obj[key.trim()] = (value || '').trim();
     }
 
     // Build headers object
     const headers_obj = {};
     for (let i = 0; i < headers?.length; i++) {
-        const { key, value, enabled } = headers[i];
-        if (enabled) headers_obj[key.trim()] = value.trim();
+        const { key, value, enabled } = headers[i] || {};
+        if (!enabled) continue;
+        if (!key || !key.trim()) continue; // skip invalid or empty header keys
+        headers_obj[key.trim()] = (value || '').trim();
     }
 
     try {
