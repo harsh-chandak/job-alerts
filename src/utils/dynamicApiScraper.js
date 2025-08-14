@@ -51,9 +51,10 @@ export async function scrapeGenericApiCompany(companyConfig, db, constraints, us
     }
 
     try {
-        const response = await axios({
-            method, url: careersApi, params: params_obj, headers: headers_obj,
-        });
+        const send_obj = { method, url: careersApi }
+        if (params?.length)send_obj[params] = params_obj
+        if (headers?.length)send_obj[headers] = headers_obj
+        const response = await axios(send_obj);
         const jobs = deepGet(response.data, jobsPath) || [];
         for (const job of jobs) {
             const title = deepGet(job, fields.title);
