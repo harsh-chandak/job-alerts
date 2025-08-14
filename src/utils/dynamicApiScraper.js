@@ -22,26 +22,52 @@ function slugify(text = "") {
 }
 
 export async function scrapeGenericApiCompany(companyConfig, db, constraints, user) {
-    const { name, careersApi, params, responseMapping, method = "GET" , careersUrl} = companyConfig;
+    const { name, careersApi, params, responseMapping, method = "GET", careersUrl, headers } = companyConfig;
     const { jobsPath, fields } = responseMapping;
     const newJobs = [];
 
+    const params_obj = {}
+
+    for (let i = 0; i < params?.length; i++) {
+        const { key, value, enabled } = params[i];
+
+        if (enabled) {
+            // Any extra ops can go here before setting
+            const processedValue = value.trim();
+            params_obj[key.trim()] = processedValue;
+        }
+    }
+
+    const headers_obj = {}
+
+    for (let i = 0; i < headers?.length; i++) {
+        const { key, value, enabled } = headers[i];
+
+        if (enabled) {
+            // Any extra ops can go here before setting
+            const processedValue = value.trim();
+            headers_obj[key.trim()] = processedValue;
+        }
+    }
+
     try {
-        const response = await axios({ method, url: careersApi, params });
+        const response = await axios({
+            method, url: careersApi, params: params_obj, headers: headers_obj,
+        });
         const jobs = deepGet(response.data, jobsPath) || [];
         for (const job of jobs) {
             const title = deepGet(job, fields.title);
-            
+
             const id = String(deepGet(job, fields.id));
             const location = deepGet(job, fields.location) || "";
             const description = deepGet(job, fields.description) || "";
 
             if (!title || !id) continue;
             const fullText = `${title} ${location} ${description}`.toLowerCase();
-            
-            if (!await db.collection("sentJobs").findOne({id: id, company: name })) {
-                if  (matchesConstraints(fullText, constraints)){
-                    newJobs.push({ title, id, location, company: name , career_page: careersUrl});
+
+            if (!await db.collection("sentJobs").findOne({ id: id, company: name })) {
+                if (matchesConstraints(fullText, constraints)) {
+                    newJobs.push({ title, id, location, company: name, career_page: careersUrl });
                 }
             }
         }
@@ -54,17 +80,15 @@ export async function scrapeGenericApiCompany(companyConfig, db, constraints, us
 }
 
 function matchesConstraints(text, constraints) {
-  const text = `${title} ${location}`.toLowerCase();
+    const norm = arr => (arr || []).map(w => w.trim().toLowerCase());
 
-  const norm = arr => (arr || []).map(w => w.trim().toLowerCase());
+    const includeList = norm(constraints.include);
+    const locationList = norm(constraints.location);
+    const excludeList = norm(constraints.exclude);
 
-  const includeList = norm(constraints.include);
-  const locationList = norm(constraints.location);
-  const excludeList = norm(constraints.exclude);
+    const hasInclude = includeList.some(word => text.includes(word));
+    const hasLocation = locationList.some(word => text.includes(word));
+    const hasExclude = excludeList.some(word => text.includes(word));
 
-  const hasInclude = includeList.some(word => text.includes(word));
-  const hasLocation = locationList.some(word => text.includes(word));
-  const hasExclude = excludeList.some(word => text.includes(word));
-
-  return hasInclude && hasLocation && !hasExclude;
+    return hasInclude && hasLocation && !hasExclude;
 }
