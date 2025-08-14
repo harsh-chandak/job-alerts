@@ -86,7 +86,7 @@ export async function scrapeGenericApiCompany(companyConfig, db, constraints, us
             const fullText = `${title} ${location} ${description}`.toLowerCase();
             const exists = await db.collection('sentJobs').findOne({ id, company: name });
 
-            if (!exists && matchesConstraints(fullText, constraints)) {
+            if (!exists) {
                 newJobs.push({
                     title,
                     id,
